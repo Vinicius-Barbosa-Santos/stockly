@@ -1,11 +1,11 @@
 import { PlusIcon } from "lucide-react";
 import { Button } from "../_components/ui/button";
-import { db } from "../_lib/prisma";
 import { DataTable } from "../_components/ui/data-table";
 import { productsTableColumns } from "./_components/table-columns";
+import { getProducts } from "../_data-acess/product/get-products";
 
 const ProductsPage = async () => {
-    const products = await db.product.findMany({})
+    const products = await getProducts()
 
     return (
         <div className="w-full rounded-lg mx-8 mt-8 space-y-8 p-8 bg-white">
