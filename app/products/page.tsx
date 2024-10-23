@@ -5,6 +5,7 @@ import { productsTableColumns } from "./_components/table-columns";
 import { getProducts } from "../_data-acess/product/get-products";
 
 const ProductsPage = async () => {
+
     const products = await getProducts()
 
     return (
@@ -20,7 +21,6 @@ const ProductsPage = async () => {
                     Novo Produto
                 </Button>
             </div>
-
             <DataTable columns={productsTableColumns} data={JSON.parse(JSON.stringify(products))} />
         </div>
     );
