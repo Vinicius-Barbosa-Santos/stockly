@@ -1,7 +1,6 @@
 "use client"
 
-import * as z from "zod"
-import { PlusIcon } from "lucide-react";
+import { Loader2Icon, PlusIcon } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../_components/ui/dialog";
 import { useForm } from 'react-hook-form';
@@ -17,22 +16,19 @@ import {
 } from "@/app/_components/ui/form"
 import { Input } from "@/app/_components/ui/input";
 import { NumericFormat } from "react-number-format";
+import { useState } from "react";
+import { createProductsSchema, CreateProductsSchema } from "@/app/_actions/product/create-products/schema";
+import { createProduct } from "@/app/_actions/product/create-products";
 
-const formSchema = z.object({
-    name: z.string().trim().min(1, { message: "O nome do produto é obrigatório" }),
-    price: z.number().min(0.01, { message: "O preço do produto é obrigatório" }),
-    stock: z.coerce.number().positive({
-        message: "A quantidade em estoque deve ser positiva"
-    }).int().min(0, { message: "A quantidade do produto é obrigatória" }),
-})
 
-type formSchemaInput = z.infer<typeof formSchema>
 
-const AddProductButton = () => {
+const CreateProductButton = () => {
 
-    const form = useForm<formSchemaInput>({
+    const [dialogIsOpen, setDialogIsOpen] = useState(false)
+
+    const form = useForm<CreateProductsSchema>({
         shouldUnregister: true,
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(createProductsSchema),
         defaultValues: {
             name: "",
             price: 0,
@@ -40,12 +36,17 @@ const AddProductButton = () => {
         }
     })
 
-    const onSubmit = (data: formSchemaInput) => {
-        console.log(data)
+    const onSubmit = async (data: CreateProductsSchema) => {
+        try {
+            await createProduct(data)
+            setDialogIsOpen(false)
+        } catch (error) {
+            console.error(error)
+        }
     }
 
     return (
-        <Dialog>
+        <Dialog open={dialogIsOpen} onOpenChange={setDialogIsOpen}>
             <DialogTrigger asChild>
                 <Button className="gap-2">
                     <PlusIcon size={20} />
@@ -81,7 +82,7 @@ const AddProductButton = () => {
                                 <FormItem>
                                     <FormLabel>Preço</FormLabel>
                                     <FormControl>
-                                        <NumericFormat 
+                                        <NumericFormat
                                             thousandSeparator="."
                                             decimalSeparator=","
                                             fixedDecimalScale
@@ -91,7 +92,7 @@ const AddProductButton = () => {
                                             customInput={Input}
                                             onValueChange={(values) => field.onChange(values.floatValue)}
                                             {...field}
-                                            onChange={() => {}}
+                                            onChange={() => { }}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -115,9 +116,16 @@ const AddProductButton = () => {
 
                         <DialogFooter>
                             <DialogClose asChild>
-                                <Button variant="secondary" type="reset">Cancelar</Button>
+                                <Button variant="secondary" type="reset">
+                                    Cancelar
+                                </Button>
                             </DialogClose>
-                            <Button type="submit">Salvar</Button>
+                            <Button disabled={form.formState.isSubmitting} type="submit" className="gap-1.5">
+                                {form.formState.isSubmitting && (
+                                    <Loader2Icon className="animate-spin" size={16} />
+                                )}
+                                Salvar
+                            </Button>
                         </DialogFooter>
                     </form>
                 </Form>
@@ -126,4 +134,4 @@ const AddProductButton = () => {
     );
 }
 
-export default AddProductButton;
+export default CreateProductButton;
