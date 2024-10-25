@@ -10,5 +10,5 @@ export const getProducts = async (): Promise<Product[]> => {
 
 export const cachedGetProducts = unstable_cache(getProducts,['get-products'], {
     tags: ["get-products"],
-    revalidate: 60
+    revalidate: 10
 })
