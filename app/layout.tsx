@@ -3,6 +3,7 @@ import "./globals.css";
 import SideBar from "./_components/sidebar";
 
 import { Inter } from 'next/font/google'
+import { Toaster } from "./_components/ui/sonner";
 
 const inter = Inter({
   subsets: ['latin'],
@@ -28,6 +29,8 @@ export default function RootLayout({
           <SideBar />
           {children}
         </div>
+
+        <Toaster />
       </body>
     </html>
   );
