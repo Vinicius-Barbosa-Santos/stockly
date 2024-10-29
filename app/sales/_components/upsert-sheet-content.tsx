@@ -1,26 +1,44 @@
 "use client"
 
+import { Button } from "@/app/_components/ui/button";
 import { Combobox, ComboboxOption } from "@/app/_components/ui/combobox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/_components/ui/form";
 import { Input } from "@/app/_components/ui/input";
 import { SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/app/_components/ui/sheet";
+import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/app/_components/ui/table";
+import { formatCurrency } from "@/app/_helpers/currency";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Product } from "@prisma/client";
+import { PlusIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import * as z from "zod";
 
 const formSchema = z.object({
-    productId: z.string().uuid(),
-    quantity: z.number().int().positive()
+    productId: z.string().uuid({
+        message: "O produto é obrigatório"
+    }),
+    quantity: z.coerce.number().int().positive()
 })
 
 type FormSchema = z.infer<typeof formSchema>
 
 interface UpsertSheetContentProps {
+    products: Product[],
     productOptions: ComboboxOption[]
 }
 
-const UpsertSheetContent = ({ productOptions }: UpsertSheetContentProps) => {
+interface SelectedProduct {
+    id: string,
+    name: string,
+    price: number,
+    quantity: number
+}
+
+const UpsertSheetContent = ({ products, productOptions }: UpsertSheetContentProps) => {
+
+    const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([])
 
     const form = useForm<FormSchema>({
         resolver: zodResolver(formSchema),
@@ -30,8 +48,41 @@ const UpsertSheetContent = ({ productOptions }: UpsertSheetContentProps) => {
         }
     })
 
+    const onSubmit = (data: FormSchema) => {
+        const selectedProduct = products.find(product => product.id === data.productId)
+
+        if (!selectedProduct) return
+
+        setSelectedProducts((currencyProducts) => {
+            const existingProduct = currencyProducts.find((product) => product.id === selectedProduct.id)
+
+            if(existingProduct) {
+                return currencyProducts.map(product => {
+                    if(product.id === selectedProduct.id) {
+                        return {
+                            ...existingProduct, 
+                            quantity : existingProduct.quantity + data.quantity
+                        }
+                    }
+
+                    return product
+                })
+            }
+
+            return [...currencyProducts, {...selectedProduct, price: Number(selectedProduct.price), quantity: data.quantity}]
+        })
+
+        form.reset()
+    }
+
+    const productsTotal = useMemo(() => {
+        return selectedProducts.reduce((acc, product) => {
+            return acc + product.price * product.quantity
+        }, 0)
+    }, [selectedProducts])
+
     return (
-        <SheetContent>
+        <SheetContent className="!max-w-[700px]">
             <SheetHeader>
                 <SheetTitle>Nova Venda</SheetTitle>
                 <SheetDescription>
@@ -40,7 +91,7 @@ const UpsertSheetContent = ({ productOptions }: UpsertSheetContentProps) => {
             </SheetHeader>
 
             <Form {...form}>
-                <form className="py-6 space-y-6">
+                <form className="py-6 space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
                     <FormField
                         control={form.control}
                         name="productId"
@@ -57,7 +108,7 @@ const UpsertSheetContent = ({ productOptions }: UpsertSheetContentProps) => {
 
                     <FormField
                         control={form.control}
-                        name="Quantity"
+                        name="quantity"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Quantidade</FormLabel>
@@ -68,8 +119,41 @@ const UpsertSheetContent = ({ productOptions }: UpsertSheetContentProps) => {
                             </FormItem>
                         )}
                     />
+
+                    <Button type="submit" className="gap-2 w-full" variant={"secondary"}>
+                        <PlusIcon size={20} />
+                        Adicionar produto a venda
+                    </Button>
                 </form>
             </Form>
+
+            <Table>
+                <TableCaption>Lista de produtos adicionados a venda.</TableCaption>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Produto</TableHead>
+                        <TableHead>Preço Unitário</TableHead>
+                        <TableHead>Quantidade</TableHead>
+                        <TableHead>Total</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {selectedProducts.map((product) => (
+                        <TableRow key={product.id}>
+                            <TableCell>{product.name}</TableCell>
+                            <TableCell>{formatCurrency(product.price)}</TableCell>
+                            <TableCell>{product.quantity}</TableCell>
+                            <TableCell>{formatCurrency(product.price * product.quantity)}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+                <TableFooter>
+                    <TableRow>
+                        <TableCell colSpan={3}>Total</TableCell>
+                        <TableCell colSpan={3}>{formatCurrency(productsTotal)}</TableCell>
+                    </TableRow>
+                </TableFooter>
+            </Table>
         </SheetContent>
     );
 }
