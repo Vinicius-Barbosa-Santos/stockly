@@ -14,6 +14,7 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import * as z from "zod";
+import TableDropdownMenu from "./table-dropdown-menu";
 
 const formSchema = z.object({
     productId: z.string().uuid({
@@ -37,7 +38,6 @@ interface SelectedProduct {
 }
 
 const UpsertSheetContent = ({ products, productOptions }: UpsertSheetContentProps) => {
-
     const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([])
 
     const form = useForm<FormSchema>({
@@ -56,12 +56,12 @@ const UpsertSheetContent = ({ products, productOptions }: UpsertSheetContentProp
         setSelectedProducts((currencyProducts) => {
             const existingProduct = currencyProducts.find((product) => product.id === selectedProduct.id)
 
-            if(existingProduct) {
+            if (existingProduct) {
                 return currencyProducts.map(product => {
-                    if(product.id === selectedProduct.id) {
+                    if (product.id === selectedProduct.id) {
                         return {
-                            ...existingProduct, 
-                            quantity : existingProduct.quantity + data.quantity
+                            ...existingProduct,
+                            quantity: existingProduct.quantity + data.quantity
                         }
                     }
 
@@ -69,7 +69,7 @@ const UpsertSheetContent = ({ products, productOptions }: UpsertSheetContentProp
                 })
             }
 
-            return [...currencyProducts, {...selectedProduct, price: Number(selectedProduct.price), quantity: data.quantity}]
+            return [...currencyProducts, { ...selectedProduct, price: Number(selectedProduct.price), quantity: data.quantity }]
         })
 
         form.reset()
@@ -80,6 +80,12 @@ const UpsertSheetContent = ({ products, productOptions }: UpsertSheetContentProp
             return acc + product.price * product.quantity
         }, 0)
     }, [selectedProducts])
+
+    const onDelete = (productId: string) => {
+        setSelectedProducts((currentProducts) => {
+            return currentProducts.filter((product) => product.id !== productId)
+        })
+    }
 
     return (
         <SheetContent className="!max-w-[700px]">
@@ -135,6 +141,7 @@ const UpsertSheetContent = ({ products, productOptions }: UpsertSheetContentProp
                         <TableHead>Preço Unitário</TableHead>
                         <TableHead>Quantidade</TableHead>
                         <TableHead>Total</TableHead>
+                        <TableHead>Ações</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -144,6 +151,9 @@ const UpsertSheetContent = ({ products, productOptions }: UpsertSheetContentProp
                             <TableCell>{formatCurrency(product.price)}</TableCell>
                             <TableCell>{product.quantity}</TableCell>
                             <TableCell>{formatCurrency(product.price * product.quantity)}</TableCell>
+                            <TableCell>
+                                <TableDropdownMenu product={JSON.parse(JSON.stringify(product))} onDelete={onDelete} />
+                            </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
