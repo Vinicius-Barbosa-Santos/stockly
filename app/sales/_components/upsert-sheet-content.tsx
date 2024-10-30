@@ -57,6 +57,19 @@ const UpsertSheetContent = ({ products, productOptions }: UpsertSheetContentProp
             const existingProduct = currencyProducts.find((product) => product.id === selectedProduct.id)
 
             if (existingProduct) {
+
+                const productIsOutStock = existingProduct.quantity + data.quantity > selectedProduct.stock
+
+                if (productIsOutStock) {
+                    form.setError("quantity", {
+                        message: "Quantidade indisponível em estoque."
+                    })
+
+                    return currencyProducts
+                }
+
+                form.reset()
+
                 return currencyProducts.map(product => {
                     if (product.id === selectedProduct.id) {
                         return {
@@ -69,10 +82,20 @@ const UpsertSheetContent = ({ products, productOptions }: UpsertSheetContentProp
                 })
             }
 
+            const productIsOutStock = data.quantity > selectedProduct.stock
+
+            if (productIsOutStock) {
+                form.setError("quantity", {
+                    message: "Quantidade indisponível em estoque."
+                })
+
+                return currencyProducts
+            }
+
+            form.reset()
+
             return [...currencyProducts, { ...selectedProduct, price: Number(selectedProduct.price), quantity: data.quantity }]
         })
-
-        form.reset()
     }
 
     const productsTotal = useMemo(() => {
