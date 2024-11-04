@@ -12,11 +12,13 @@ import { Product } from "@prisma/client";
 import { CheckIcon, PlusIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useAction } from "next-safe-action/hooks"
 
 import * as z from "zod";
 import TableDropdownMenu from "./table-dropdown-menu";
 import { createSale } from "@/app/_actions/sale/create-sale";
 import { toast } from "sonner";
+import { flattenValidationErrors } from "next-safe-action";
 
 const formSchema = z.object({
     productId: z.string().uuid({
@@ -43,6 +45,18 @@ interface SelectedProduct {
 const UpsertSheetContent = ({ products, productOptions, onSubmitSuccess }: UpsertSheetContentProps) => {
     const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([])
 
+    const { execute: executeCreateSale } = useAction(createSale, {
+        onError: ({ error: { validationErrors, serverError } }) => {
+            const flattenedErros = flattenValidationErrors(validationErrors)
+            toast.error(serverError ?? flattenedErros.formErrors[0])
+
+        },
+        onSuccess: () => {
+            toast.success("Venda Realizada com sucesso.")
+            onSubmitSuccess()
+        }
+    })
+
     const form = useForm<FormSchema>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -61,15 +75,15 @@ const UpsertSheetContent = ({ products, productOptions, onSubmitSuccess }: Upser
 
             if (existingProduct) {
 
-                const productIsOutStock = existingProduct.quantity + data.quantity > selectedProduct.stock
+                // const productIsOutStock = existingProduct.quantity + data.quantity > selectedProduct.stock
 
-                if (productIsOutStock) {
-                    form.setError("quantity", {
-                        message: "Quantidade indisponível em estoque."
-                    })
+                // if (productIsOutStock) {
+                //     form.setError("quantity", {
+                //         message: "Quantidade indisponível em estoque."
+                //     })
 
-                    return currencyProducts
-                }
+                //     return currencyProducts
+                // }
 
                 form.reset()
 
@@ -85,15 +99,15 @@ const UpsertSheetContent = ({ products, productOptions, onSubmitSuccess }: Upser
                 })
             }
 
-            const productIsOutStock = data.quantity > selectedProduct.stock
+            // const productIsOutStock = data.quantity > selectedProduct.stock
 
-            if (productIsOutStock) {
-                form.setError("quantity", {
-                    message: "Quantidade indisponível em estoque."
-                })
+            // if (productIsOutStock) {
+            //     form.setError("quantity", {
+            //         message: "Quantidade indisponível em estoque."
+            //     })
 
-                return currencyProducts
-            }
+            //     return currencyProducts
+            // }
 
             form.reset()
 
@@ -114,19 +128,12 @@ const UpsertSheetContent = ({ products, productOptions, onSubmitSuccess }: Upser
     }
 
     const onSubmitSale = async () => {
-        try {
-            await createSale({
-                products: selectedProducts.map(product => ({
-                    id: product.id,
-                    quantity: product.quantity
-                }))
-            })
-            toast.success("Venda Realizada com sucesso!")
-            onSubmitSuccess()
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (error) {
-            toast.error("Erro ao realizar a venda.")
-        }
+        executeCreateSale({
+            products: selectedProducts.map(product => ({
+                id: product.id,
+                quantity: product.quantity
+            }))
+        })
     }
 
     return (

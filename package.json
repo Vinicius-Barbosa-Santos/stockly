@@ -23,6 +23,7 @@
     "cmdk": "^1.0.0",
     "lucide-react": "^0.451.0",
     "next": "^15.0.1",
+    "next-safe-action": "^7.9.3",
     "next-themes": "^0.3.0",
     "prisma": "^5.20.0",
     "react": "^18",
