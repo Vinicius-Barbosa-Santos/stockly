@@ -1,11 +1,11 @@
 "use client"
 
 import { Badge } from "@/app/_components/ui/badge"
-import { Product } from "@prisma/client"
 import { ColumnDef } from "@tanstack/react-table"
 import { CircleIcon } from "lucide-react"
 
 import TableDropdownMenu from "./table-dropdown-menu"
+import { ProductDto } from "@/app/_data-acess/product/get-products"
 
 const getStatusLabel = (status: string) => {
   if (status === "IN_STOCK") {
@@ -15,7 +15,7 @@ const getStatusLabel = (status: string) => {
   return "Fora do estoque"
 }
 
-export const productsTableColumns: ColumnDef<Product>[] = [
+export const productsTableColumns: ColumnDef<ProductDto>[] = [
   {
     accessorKey: "name",
     header: "Produto",
