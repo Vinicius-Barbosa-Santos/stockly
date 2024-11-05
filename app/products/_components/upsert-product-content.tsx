@@ -9,8 +9,10 @@ import { Input } from "@/app/_components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Loader2Icon } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
+import { toast } from "sonner";
 
 interface UpsertProductsDialogContentProps {
     defaultValues?: UpsertProductSchema
@@ -19,26 +21,32 @@ interface UpsertProductsDialogContentProps {
 
 const UpsertProductsDialogContent = ({ onSuccess, defaultValues }: UpsertProductsDialogContentProps) => {
 
+    const { execute: executeUpsertProduct } = useAction(upsertProduct, {
+        onSuccess: () => {
+            toast.success("Produto salvo com sucesso.")
+            onSuccess?.()
+        },
+        onError: () => {
+            toast.error("Ocorreu um erro ao salvar o produto")
+        }
+    })
+
     const form = useForm<UpsertProductSchema>({
         shouldUnregister: true,
         resolver: zodResolver(upsertProductSchema),
-        defaultValues:defaultValues ?? {
+        defaultValues: defaultValues ?? {
+            id: "",
             name: "",
             price: 0,
             stock: 1
         }
     })
 
-    const isEditing = !!defaultValues
-
-    const onSubmit = async (data: UpsertProductSchema) => {
-        try {
-            await upsertProduct({...data, id: defaultValues?.id})
-            onSuccess?.()
-        } catch (error) {
-            console.error(error)
-        }
+    const onSubmit = (data: UpsertProductSchema) => {
+        executeUpsertProduct({ ...data, id: defaultValues?.id })
     }
+
+    const isEditing = !!defaultValues
 
     return (
         <DialogContent>
