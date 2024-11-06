@@ -8,7 +8,6 @@ interface DeleteProductDialogContentProps {
 }
 
 const DeleteProductDialogContent = ({ productId }: DeleteProductDialogContentProps) => {
-
     const { execute: executeDeleteProduct } = useAction(deleteProduct, {
         onSuccess: () => {
             toast.success("Produto excluído com sucesso.")

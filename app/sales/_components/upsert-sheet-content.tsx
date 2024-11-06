@@ -15,7 +15,7 @@ import { useForm } from "react-hook-form";
 import { useAction } from "next-safe-action/hooks"
 
 import * as z from "zod";
-import TableDropdownMenu from "./table-dropdown-menu";
+import UpsertSaleTableDropdownMenu from "./upsert-table-dropdown-menu";
 import { createSale } from "@/app/_actions/sale/create-sale";
 import { toast } from "sonner";
 import { flattenValidationErrors } from "next-safe-action";
@@ -201,7 +201,7 @@ const UpsertSheetContent = ({ products, productOptions, onSubmitSuccess }: Upser
                             <TableCell>{product.quantity}</TableCell>
                             <TableCell>{formatCurrency(product.price * product.quantity)}</TableCell>
                             <TableCell>
-                                <TableDropdownMenu product={JSON.parse(JSON.stringify(product))} onDelete={onDelete} />
+                                <UpsertSaleTableDropdownMenu product={JSON.parse(JSON.stringify(product))} onDelete={onDelete} />
                             </TableCell>
                         </TableRow>
                     ))}
