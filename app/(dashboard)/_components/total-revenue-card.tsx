@@ -4,6 +4,7 @@ import { DollarSign } from "lucide-react";
 import { formatCurrency } from "@/app/_helpers/currency";
 
 const TotalRevenueCard = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     const totalRevenue = await getTotalRevenue()
 
