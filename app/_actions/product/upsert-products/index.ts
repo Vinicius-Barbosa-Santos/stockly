@@ -9,7 +9,6 @@ export const upsertProduct = actionClient
   .schema(upsertProductSchema)
   .action(async ({ parsedInput: { id, ...data } }) => {
     upsertProductSchema.parse(data);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     await db.product.upsert({
       where: { id: id ?? "" },

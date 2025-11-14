@@ -1,6 +1,5 @@
-import "server-only";
-
 import { db } from "@/app/_lib/prisma";
+import "server-only";
 import { ProductStatusDto } from "../product/get-products";
 
 export interface MostSoldProductDto {
@@ -11,11 +10,7 @@ export interface MostSoldProductDto {
   price: number;
 }
 
-interface DashboardDto {
-  mostSoldProducts: MostSoldProductDto[];
-}
-
-export const getDashboard = async (): Promise<DashboardDto> => {
+export const getMostSoldProducts = async (): Promise<MostSoldProductDto[]> => {
   const mostSoldProductsQuery = `
     SELECT "Product"."name", SUM("SaleProduct"."quantity") as "totalSold", "Product"."price", "Product"."stock", "Product"."id" as "productId"
     FROM "SaleProduct"
@@ -25,7 +20,7 @@ export const getDashboard = async (): Promise<DashboardDto> => {
     LIMIT 10;
   `;
 
-  const mostSoldProductsPromise = await db.$queryRawUnsafe<
+  const mostSoldProducts = await db.$queryRawUnsafe<
     {
       productId: string;
       name: string;
@@ -34,13 +29,10 @@ export const getDashboard = async (): Promise<DashboardDto> => {
       price: number;
     }[]
   >(mostSoldProductsQuery);
-  const [mostSoldProducts] = await Promise.all([mostSoldProductsPromise]);
-  return {
-    mostSoldProducts: mostSoldProducts.map((product) => ({
-      ...product,
-      totalSold: Number(product.totalSold),
-      price: Number(product.price),
-      status: product.totalSold > 0 ? "IN_STOCK" : "OUT_OF_STOCK",
-    })),
-  };
+  return mostSoldProducts.map((product) => ({
+    ...product,
+    totalSold: Number(product.totalSold),
+    price: Number(product.price),
+    status: product.totalSold > 0 ? "IN_STOCK" : "OUT_OF_STOCK",
+  }));
 };

@@ -18,7 +18,13 @@ export async function GET(
     return Response.json({ message: "Product not found" }, { status: 404 });
   }
 
-  return Response.json(product, { status: 200 });
+  return Response.json(
+    {
+      ...product,
+      price: Number(product.price),
+    },
+    { status: 200 },
+  );
 }
 
 export async function DELETE(

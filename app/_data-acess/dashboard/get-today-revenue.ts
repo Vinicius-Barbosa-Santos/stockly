@@ -18,5 +18,5 @@ export const getTodayRevenue = async (): Promise<number> => {
     endOfDay,
   );
 
-  return todayRevenue[0].todayRevenue
+  return todayRevenue[0].todayRevenue;
 };
